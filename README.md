@@ -307,17 +307,36 @@
 	`$ git stash pop	`
 
 # Objective-C基础
-## objc消息传递
 
-* 第一步 resolveInstanceMethod或resolveClassMethod
+## runtime
+	Objective-C 扩展了 C 语言，并加入了面向对象特性和 Smalltalk 式的消息传递机制。而这个扩展的核心是一个用 C 和 编译语言 写的 Runtime 库。它是 Objective-C 面向对象和动态机制的基石。
+	
+	Objective-C 是一个动态语言，这意味着它不仅需要一个编译器，也需要一个运行时系统来动态得创建类和对象、进行消息传递和转发。理解 Objective-C 的 Runtime 机制可以帮我们更好的了解这个语言，适当的时候还能对语言进行扩展，从系统层面解决项目中的一些设计或技术问题。了解 Runtime ，要先了解它的核心 - 消息传递 （Messaging）。
+### objc消息传递
 
-* 第二步 forwardingTargetForSelector
+![Alt Image Text](https://upload-images.jianshu.io/upload_images/301129-a1159ef51f453da8.png "Optional Title")
 
-* 第三步 forwardInvocation
+	第一步 resolveInstanceMethod或resolveClassMethod
+	第二步 forwardingTargetForSelector
+	第三步 forwardInvocation
+	
+	三步都没找到对应方法，则返回`unrecognized selector sent to instance`
 
-三步都没找到对应方法，则返回
+### 方法魔法(Method Swizzling)方法添加和替换和KVO实现
 
-# runtime
+	    dispatch_once(&onceToken, ^{
+        Class class = [self class];
+        SEL originalSelector = @selector(viewDidLoad);
+        SEL swizzledSelector = @selector(jkviewDidLoad);
+        Method originalMethod = class_getInstanceMethod(class,originalSelector);
+        Method swizzledMethod = class_getInstanceMethod(class,swizzledSelector);
+        BOOL didAddMethod = class_addMethod(class, originalSelector, method_getImplementation(swizzledMethod), method_getTypeEncoding(swizzledMethod));
+        if (didAddMethod) {
+            class_replaceMethod(class, swizzledSelector, method_getImplementation(originalMethod), method_getTypeEncoding(originalMethod));
+        } else {
+            method_exchangeImplementations(originalMethod, swizzledMethod);
+        }
+    });
 
 # 经典第三方库
 ## SDWebImage
@@ -327,6 +346,8 @@
 # 多线程
 
 # AOP埋点
+## Aspect面向切面框架
+## Protocol Buffers
 
 # CocoaPods
 
